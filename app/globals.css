@@ -74,3 +74,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.grid-bg{
+  background-image: url("../public/bg.png");
+  background-size: 14px;
+}
