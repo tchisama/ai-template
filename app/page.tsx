@@ -18,7 +18,7 @@ export default function Home() {
   const [history, setHistory] = useState<State[]>([]);
   const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
-  const Genirate = async (e:SubmitEvent) => {
+  const Genirate = async (e:any) => {
     e.preventDefault ();
     try {
       const msg = message;
