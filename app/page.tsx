@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Send ,RocketIcon, Redo ,Undo } from 'lucide-react';
+import { Send ,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -18,7 +18,8 @@ export default function Home() {
   const [history, setHistory] = useState<State[]>([]);
   const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
-  const Genirate = async () => {
+  const Genirate = async (e:SubmitEvent) => {
+    e.preventDefault ();
     try {
       const msg = message;
       setLoading(true);
@@ -55,18 +56,40 @@ export default function Home() {
       setHtmlContent(history[historyPointer + 1].html);
     }
   };
+  const example = ()=>{
+    setMessage("make me an e-commerce item card")
+  }
 
   return (
     <div className='min-h-screen  gap-2 bg-white w-full '>
+      <div className='container border top-2 shadow left-[50%] translate-x-[-50%] fixed p-4 bg-white rounded-xl flex justify-between'>
+        <h1>Name</h1>
+        <div className='flex gap-2'>
+          <Button className='flex gap-2'>Veiw code <Eye size={18}></Eye></Button>
+          <Button className='flex gap-2' variant={"outline"}>Copy<Copy size={18}></Copy></Button>
+        </div>
+      </div>
+
+
       <div  className=' grid-bg mx-auto flex-1 rounded-xl w-full h-screen shadow-inner flex justify-center items-center'>
-                    {!htmlContent?
+                    {
+                    loading?
+                    <div>Loading</div>
+                    :
+                    !htmlContent?
                     (
-                      <div className='w-full max-w-3xl'>
+                      <div className='w-full max-w-2xl'>
                           <Alert className='shadow'>
                           <RocketIcon className="h-4 w-4" />
                           <AlertTitle>Ready to stat </AlertTitle>
+                          <AlertDescription className='py-2'>
+                            type what time of element you want me to create , you can specify the colors and the style you want .
+                          </AlertDescription>
                           <AlertDescription>
-                            type what time of element you want me to create , you can specify the colors and the style you want 
+                            <div onClick={example} className='border hover:bg-gray-50 duration-150 flex text-gray-700 cursor-pointer justify-between mt-2 rounded-lg p-4'>
+                                    make me an e-commerce item card
+                                    <ArrowRight/>
+                            </div>
                           </AlertDescription>
                         </Alert>
                         </div>
@@ -78,8 +101,10 @@ export default function Home() {
       <div className=' p-2 shadow-md border fixed bottom-4 z-50 left-[50%] translate-x-[-50%] max-w-4xl flex gap-2 w-full mx-auto bg-white rounded-lg'>
         <Button onClick={undo} variant={"outline"}><Undo/></Button>
         <Button onClick={redo} variant={"outline"}><Redo/></Button>
-        <Input value={message} onInput={(e)=>setMessage((e.target as any).value)}/>
-        <Button onClick={Genirate} className='flex gap-2'>{loading?"Loading":<>Send<Send size={20}/></>}</Button>
+        <form onSubmit={Genirate} className='flex-1 flex gap-2'>
+          <Input value={message} onInput={(e)=>setMessage((e.target as any).value)}/>
+          <Button type='submit' className='flex gap-2'>{loading?"Loading":<>Send<Send size={20}/></>}</Button>
+        </form>
       </div>
       </div>
   );
