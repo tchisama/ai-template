@@ -1,88 +1,86 @@
-import { Button } from '@/components/ui/button'
-import { Send } from 'lucide-react'
-import bg from "@/public/bg.png"
-import "./globals.css"
-import { Input } from '@/components/ui/input'
+"use client"
 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Send ,RocketIcon, Redo ,Undo } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const htmlContent = `
-<div class="item-card">
-  <img src="https://th.bing.com/th/id/R.adae46d53efe04c14e07f6b10bbe47f6?rik=K3rJPH7cRys1Kw&pid=ImgRaw&r=0" alt="Product Image" class="item-image">
-  <h3 class="item-title">Product Title</h3>
-  <p class="item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut eleifend augue.</p>
-  <div class="item-meta">
-    <span class="item-price">$99.99</span>
-    <button class="add-to-cart">Add to Cart</button>
-  </div>
-</div>
-<style>
-.item-card {
-  width: 300px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background:white;
+interface State {
+  html: string;
 }
-
-.item-image {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.item-title {
-  font-size: 18px;
-  margin: 10px 0;
-}
-
-.item-description {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
-}
-
-.item-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.item-price {
-  font-weight: bold;
-}
-
-.add-to-cart {
-  background-color: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.add-to-cart:hover {
-  background-color: #45a049;
-}
-</style>
-
-`
-
-
-
 
 export default function Home() {
+  const [htmlContent, setHtmlContent] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<State[]>([]);
+  const [historyPointer, setHistoryPointer] = useState<number>(-1);
+
+  const Genirate = async () => {
+    try {
+      const msg = message;
+      setLoading(true);
+      setMessage('');
+      const response = await axios.post<string>('http://localhost:3001/api/genirate', {
+        message: msg,
+        code: htmlContent,
+      });
+      setHtmlContent(response.data);
+
+      // Add the current state to the history when generating new content
+      const newHistory = history.slice(0, historyPointer + 1);
+      newHistory.push({ html: response.data });
+      setHistory(newHistory);
+      setHistoryPointer(newHistory.length - 1);
+      console.log(response.data)
+    } catch {
+      console.log('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const undo = () => {
+    if (historyPointer > 0) {
+      setHistoryPointer(historyPointer - 1);
+      setHtmlContent(history[historyPointer - 1].html);
+    }
+  };
+
+  const redo = () => {
+    if (historyPointer < history.length - 1) {
+      setHistoryPointer(historyPointer + 1);
+      setHtmlContent(history[historyPointer + 1].html);
+    }
+  };
+
   return (
-    <div className='min-h-screen  gap-2 bg-white w-full flex flex-col'>
-      <div  className='  mt-8 container grid-bg mx-auto flex-1 rounded-xl shadow-inner flex justify-center items-center'>
-            <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
-            </div>
-      <div className='my-4 p-2 shadow-md border max-w-4xl flex gap-2 w-full mx-auto bg-white rounded-lg'>
-        <Input/>
-        <Button className='flex gap-2'>Send<Send size={20}/></Button>
+    <div className='min-h-screen  gap-2 bg-white w-full '>
+      <div  className=' grid-bg mx-auto flex-1 rounded-xl w-full h-screen shadow-inner flex justify-center items-center'>
+                    {!htmlContent?
+                    (
+                      <div className='w-full max-w-3xl'>
+                          <Alert className='shadow'>
+                          <RocketIcon className="h-4 w-4" />
+                          <AlertTitle>Ready to stat </AlertTitle>
+                          <AlertDescription>
+                            type what time of element you want me to create , you can specify the colors and the style you want 
+                          </AlertDescription>
+                        </Alert>
+                        </div>
+                    )
+                        :
+                        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                  }
+        </div>
+      <div className=' p-2 shadow-md border fixed bottom-4 z-50 left-[50%] translate-x-[-50%] max-w-4xl flex gap-2 w-full mx-auto bg-white rounded-lg'>
+        <Button onClick={undo} variant={"outline"}><Undo/></Button>
+        <Button onClick={redo} variant={"outline"}><Redo/></Button>
+        <Input value={message} onInput={(e)=>setMessage((e.target as any).value)}/>
+        <Button onClick={Genirate} className='flex gap-2'>{loading?"Loading":<>Send<Send size={20}/></>}</Button>
       </div>
-    </div>
-  )
+      </div>
+  );
 }
