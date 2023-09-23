@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Send ,ArrowLeft,Save,Plus,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye } from 'lucide-react';
+import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -164,15 +164,20 @@ export default function Home() {
           </MenubarMenu>
         </Menubar>
 
+        {/* <div className='px-1 flex text-green-700 items-center gap-2 border border-green-400 rounded-lg bg-green-100'>
+          <h3 className='text-sm '>149 </h3>
+          <Diamond size={14}/>
+        </div> */}
+
         </div>
         <div className='flex gap-2'>
           <Dialog >
             <DialogTrigger className='flex gap-2' asChild>
-                <Button >Veiw code <Eye size={18}></Eye></Button>
+                <Button >Get code <Code size={18}></Code></Button>
             </DialogTrigger>
-            <DialogContent className='w-screen' >
+            <DialogContent className='w-screen max-w-[800px]' >
               <DialogHeader>
-                <DialogTitle>Tomplate code</DialogTitle>
+                <DialogTitle>Choose your framework</DialogTitle>
               </DialogHeader>
               <DialogDescription className='flex gap-2'>
                 <Select>
@@ -194,10 +199,10 @@ export default function Home() {
                     <SelectItem value="tailwindcss">Tailwind css</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button>Recode</Button>
+                <Button variant={"outline"} className='flex gap-2'>Recode <RedoDot size={16}/></Button>
               </DialogDescription>
-              <DialogDescription className='w-fit'>
-                <pre contentEditable className=' w-full outline-none max-w-[465px] overflow-auto max-h-[60vh]'>
+              <DialogDescription className='w-full '>
+                <pre contentEditable className=' w-full outline-none max-w-[765px] overflow-auto max-h-[60vh]'>
                 {htmlContent?htmlContent:"no code to preview" }
                 </pre>
               </DialogDescription>
