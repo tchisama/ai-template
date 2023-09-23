@@ -13,6 +13,7 @@ import { Dialog, DialogClose, DialogTrigger } from '@radix-ui/react-dialog';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+
 interface State {
   html: string;
 }
@@ -115,7 +116,7 @@ export default function Home() {
             <DialogTrigger className='flex gap-2' asChild>
                 <Button >Get code <Code size={18}></Code></Button>
             </DialogTrigger>
-            <DialogContent className='w-screen max-w-[800px]' >
+            <DialogContent className='w-screen max-w-[1000px]' >
               <DialogHeader>
                 <DialogTitle>Choose your framework</DialogTitle>
               </DialogHeader>
@@ -142,9 +143,9 @@ export default function Home() {
                 <Button variant={"outline"} className='flex gap-2'>Recode <RedoDot size={16}/></Button>
               </DialogDescription>
               <DialogDescription className='w-full '>
-                <pre contentEditable className=' w-full outline-none max-w-[765px] overflow-auto max-h-[60vh]'>
-                {htmlContent?htmlContent:"no code to preview" }
-                </pre>
+                <textarea value={htmlContent} onInput={(e)=>setHtmlContent((e.target as any).value)} className=' w-full bg-gray-50 border rounded-xl overflow-auto min-h-[50vh] p-4 max-h-[60vh]'>
+                </textarea>
+
               </DialogDescription>
               <DialogFooter >
 
