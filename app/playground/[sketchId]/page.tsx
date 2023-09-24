@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2 } from 'lucide-react';
+import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2, Trash, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -15,7 +15,8 @@ import GitCodeButton from '@/components/global/GitCodeButton';
 import { useToast } from '@/components/ui/use-toast';
 import { ToastProvider } from '@radix-ui/react-toast';
 import { Toaster } from '@/components/ui/toaster';
-import { Sketch } from '@/hooks/sketchs';
+import useSketchs, { Sketch } from '@/hooks/sketchs';
+import { useClerk } from '@clerk/nextjs';
 
 interface State {
   html: string;
@@ -29,6 +30,11 @@ export default function Home() {
   const {code , setCode,history,setHistory}=useStore()
   const {toast} = useToast()
   const [sketch,setSketch]=useState<Sketch|null>(null)
+
+  const { user } = useClerk();
+  const userId = user?.id;
+
+  const { sketchs, setSketchs } = useSketchs();
 
   const {sketchId}=useParams()
 
@@ -62,7 +68,7 @@ export default function Home() {
       const msg = message;
       setLoading(true);
       setMessage('');
-      const response = await axios.post<string>('http://localhost:3001/api/genirate', {
+      const response = await axios.post<string>('http://localhost:3001/ai/genirate', {
         message: msg,
         code,
       });
@@ -165,7 +171,50 @@ export default function Home() {
         }
   }
 
+  const createNewSketch = async()=>{
+        try {
+          const response = await axios.post("http://localhost:3001/sketch/create", {
+            owner: userId,
+            name:"new sketch",
+            description:""
+          });
+          console.log(response.data);
+          setSketchs([...sketchs,response.data])
+          router.push("/playground/"+response.data._id)
+        } catch (error) {
+          // Handle any errors here
+          console.error(error);
+        }
+  }
 
+  
+  const deleteSketch = async()=>{
+        try {
+          const response = await axios.post("http://localhost:3001/sketch/delete-sketch", {
+            id: sketch?._id,
+          });
+          toast({
+            title:"Sketch deleted",
+            description:"done deleting the sketch"
+          })
+
+          setSketchs(sketchs.filter((s:Sketch) => s._id !== sketch?._id));
+          router.push("/")
+
+        } catch (error) {
+          // Handle any errors here
+          console.error(error);
+        }
+  }
+
+  const cleanWorkSpace = ()=>{
+    setCode("")
+    setMessage("")
+    const newHistory = history.slice(0, historyPointer + 1);
+    newHistory.push({ code:"",prompt:"default" });
+    setHistory(newHistory);
+    setHistoryPointer(newHistory.length - 1);
+  }
 
   return (
     <ToastProvider>
@@ -180,12 +229,13 @@ export default function Home() {
             <MenubarContent>
               <MenubarItem onClick={()=>router.push("/")} className="flex gap-2"><ArrowLeft size={16}/>Go back</MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={newWorkSpace} className="flex gap-2">
+              <MenubarItem onClick={createNewSketch} className="flex gap-2">
                 <Plus size={16}/>
                 New WorkSpace 
               </MenubarItem>
               <MenubarItem className="flex gap-2" onClick={updateSketch}><Save size={16}/>Save</MenubarItem>
-              <MenubarItem className="flex gap-2"><Save size={16}/>Save As</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem onClick={deleteSketch} className="flex gap-2"><Trash size={16}/>Delete Sketch</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
 
@@ -194,6 +244,8 @@ export default function Home() {
             <MenubarContent>
               <MenubarItem disabled={historyPointer < 1} onClick={undo} className="flex gap-2"><Undo size={16}/>Undo</MenubarItem>
               <MenubarItem disabled={historyPointer > history.length - 2} onClick={redo} className="flex gap-2"><Redo size={16}/>Redo</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem onClick={cleanWorkSpace} className="flex gap-2"><Eraser size={16}/>Clean workspace</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
 

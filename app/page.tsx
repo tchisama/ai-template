@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import useSketchs, { Sketch } from '@/hooks/sketchs'
 import axios from "axios"
-import { Dialog } from '@radix-ui/react-dialog'
+import { Dialog, DialogClose } from '@radix-ui/react-dialog'
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { useToast } from '@/components/ui/use-toast'
@@ -16,8 +16,8 @@ import { useToast } from '@/components/ui/use-toast'
 function page() {
   const router = useRouter()
   const { sketchs, setSketchs } = useSketchs();
-  const { user } = useClerk();
   const [loaded,setLoaded]=useState(false)
+  const { user } = useClerk();
   const userId = user?.id;
   const [newInput,setNewInput]=useState({
     name:"",
@@ -60,6 +60,7 @@ function page() {
             ...newInput
           });
           console.log(response.data);
+          setSketchs([...sketchs,response.data])
           router.push("/playground/"+response.data._id)
         } catch (error) {
           // Handle any errors here
@@ -100,7 +101,9 @@ function page() {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button variant={"outline"}>Cancle</Button>
+                    <DialogClose>
+                      <Button variant={"outline"}>Cancle</Button>
+                    </DialogClose>
                     <Button className='flex gap-2' onClick={createNewSketch}>Create <ArrowRight size={15}/></Button>
                   </DialogFooter>
                 </DialogContent>
