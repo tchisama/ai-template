@@ -9,16 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { UserButton } from '@clerk/nextjs/app-beta';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from '@/components/ui/menubar';
-import { Dialog, DialogClose, DialogTrigger } from '@radix-ui/react-dialog';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import useStore from '@/hooks/store';
 import GitCodeButton from '@/components/global/GitCodeButton';
 import { useToast } from '@/components/ui/use-toast';
-import { Toast } from '@/components/ui/toast';
 import { ToastProvider } from '@radix-ui/react-toast';
 import { Toaster } from '@/components/ui/toaster';
+import { Sketch } from '@/hooks/sketchs';
 
 interface State {
   html: string;
@@ -31,7 +28,11 @@ export default function Home() {
   const router = useRouter()
   const {code , setCode,history,setHistory}=useStore()
   const {toast} = useToast()
+  const [sketch,setSketch]=useState<Sketch|null>(null)
 
+  const {sketchId}=useParams()
+
+  const [update,setUpdate]=useState(0)
   
   function copyToClipboard() {
     if(code){
@@ -73,6 +74,7 @@ export default function Home() {
       setHistory(newHistory);
       setHistoryPointer(newHistory.length - 1);
       console.log(response.data)
+      setUpdate(p=>p+1)
     } catch {
       console.log('Something went wrong');
     } finally {
@@ -85,6 +87,7 @@ export default function Home() {
       setHistoryPointer(historyPointer - 1);
       setCode(history[historyPointer - 1].code);
     }
+    setUpdate(p=>p+1)
   };
 
   const redo = () => {
@@ -92,6 +95,7 @@ export default function Home() {
       setHistoryPointer(historyPointer + 1);
       setCode(history[historyPointer + 1].code);
     }
+    setUpdate(p=>p+1)
   };
   const example = ()=>{
     setMessage("make me an e-commerce item card")
@@ -101,11 +105,72 @@ export default function Home() {
     setCode("")
   }
 
+  useEffect(()=>{
+      const newHistory = history.slice(0, historyPointer + 1);
+      newHistory.push({ code,prompt:"default" });
+      setHistory(newHistory);
+      setHistoryPointer(newHistory.length - 1);
+  },[])
+
+
+  const addHistory=()=>{
+
+      const newHistory = history.slice(0, historyPointer + 1);
+      newHistory.push({ code,prompt:"default" });
+      setHistory(newHistory);
+      setHistoryPointer(newHistory.length - 1);
+
+  }
+
+
+  useEffect(()=>{
+    if(update>0){
+      updateSketch()
+    }
+  },[update])
+
+  useEffect(() => {
+    if (sketchId) { // Check if userId is defined
+      const getSketchs = async () => {
+        try {
+          const response = await axios.post("http://localhost:3001/sketch/get-sketch", {
+            id: sketchId
+          });
+          setCode(response.data.data)
+          setSketch(response.data)
+          console.log(response.data);
+        } catch (error) {
+          // Handle any errors here
+          console.error(error);
+        }
+      };
+  
+      if (sketchId) {
+        getSketchs(); // Call getSketchs when userId is defined
+      }
+    }
+  }, [sketchId]); 
+
+
+  const updateSketch = async()=>{
+        try {
+          const response = await axios.post("http://localhost:3001/sketch/update-sketch", {
+            id: sketchId,
+            data:code,
+            name:sketch?.name
+          });
+        } catch (error) {
+          // Handle any errors here
+          console.error(error);
+        }
+  }
+
+
+
   return (
     <ToastProvider>
 
     <div className='min-h-screen  gap-2 bg-white w-full '>
-      <Toaster/>
       <div className='container items-center border top-2 shadow left-[50%] translate-x-[-50%] fixed p-2 bg-white rounded-xl flex justify-between'>
         <div className='flex items-center gap-4 px-1'>
         <UserButton/>
@@ -119,7 +184,7 @@ export default function Home() {
                 <Plus size={16}/>
                 New WorkSpace 
               </MenubarItem>
-              <MenubarItem className="flex gap-2"><Save size={16}/>Save</MenubarItem>
+              <MenubarItem className="flex gap-2" onClick={updateSketch}><Save size={16}/>Save</MenubarItem>
               <MenubarItem className="flex gap-2"><Save size={16}/>Save As</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
@@ -147,11 +212,11 @@ export default function Home() {
 
         </div>
         <div className='flex items-center'>
-          <Input placeholder='title of the sketch' className='bg-gray-50 pr-9'></Input>
+          <Input onChange={updateSketch} onInput={(e)=>setSketch((p:Sketch|null)=>p==null?null:({...p,name:(e.target as any).value}))} value={sketch?.name} placeholder='title of the sketch' className='bg-gray-50 pr-9'></Input>
           <Edit2 size={16} className='-translate-x-7'/>
         </div>
         <div className='flex gap-2'>
-          <GitCodeButton/>
+          <GitCodeButton addHistory={addHistory} updateSketch={updateSketch}/>
           <Button disabled={!code} onClick={copyToClipboard} className='flex gap-2' variant={"outline"}>Copy<Copy size={18}></Copy></Button>
         </div>
       </div>

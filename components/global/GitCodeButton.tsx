@@ -4,8 +4,9 @@ import { Button } from '../ui/button'
 import { Code, Copy, RedoDot, Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import useStore from '@/hooks/store'
+import { DialogClose } from '@radix-ui/react-dialog'
 
-function GitCodeButton() {
+function GitCodeButton({updateSketch,addHistory}:{addHistory:()=>void,updateSketch:()=>void}) {
     const {code , setCode } = useStore()
   return (
           <Dialog >
@@ -47,9 +48,14 @@ function GitCodeButton() {
 
               </DialogDescription>
               <DialogFooter >
+              <DialogClose>
                 <Button variant={'outline'} className='flex gap-2' >close</Button>
-                <Button className='flex gap-2' >Save <Save size={14}></Save></Button>
+              </DialogClose>
+              <DialogClose>
+                <Button onClick={()=>{updateSketch();addHistory()}} className='flex gap-2' >Save <Save size={14}></Save></Button>
+              </DialogClose>
               </DialogFooter>
+
             </DialogContent>
           </Dialog>
   )

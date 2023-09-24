@@ -14,7 +14,7 @@ export interface Sketch {
 }
 
 interface StoreState {
-  sketchs:Sketch[]
+  sketchs:Sketch[] 
   setSketchs: (sketchs: Sketch[]) => void;
 }
 
