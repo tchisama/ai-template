@@ -11,6 +11,7 @@ import * as z from 'zod'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormField, FormItem } from '../ui/form';
+import axios from 'axios';
 
 const formSchema = z.object({
   framework:z.string(),
@@ -19,6 +20,8 @@ const formSchema = z.object({
 
 function GitCodeButton({updateSketch,addHistory}:{addHistory:()=>void,updateSketch:()=>void}) {
     const {code , setCode } = useStore()
+    const [recode,setRecode]=useState("")
+    const [loading,setLoading]=useState(false)
 
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -29,8 +32,22 @@ function GitCodeButton({updateSketch,addHistory}:{addHistory:()=>void,updateSket
       }
     })
 
-    const onSubmit = (values:z.infer<typeof formSchema>)=>{
-      console.log(values)
+    const onSubmit =async (values:z.infer<typeof formSchema>)=>{
+      if(values.framework && values.styling && code){
+        setLoading(true)
+        try {
+          const response = await axios.post("http://localhost:3001/ai/recode", {
+            code,
+            framework:values.framework,
+            styling:values.styling
+          });
+          setRecode(response.data)
+          setLoading(false)
+        } catch (error) {
+          // Handle any errors here
+          console.error(error);
+        }
+      }
     }
 
   return (
@@ -116,7 +133,14 @@ function GitCodeButton({updateSketch,addHistory}:{addHistory:()=>void,updateSket
                 )}
                 />
 
-                <Button  type='submit' className='flex gap-2'>Recode <RedoDot size={16}/></Button>
+                <Button disabled={loading} type='submit' className='flex gap-2'>
+                  {
+                    loading?"loading":
+                    <>
+                      Recode <RedoDot size={16}/>
+                    </>
+                  }
+                </Button>
 
                 </form>
               </Form>
@@ -125,8 +149,18 @@ function GitCodeButton({updateSketch,addHistory}:{addHistory:()=>void,updateSket
 
               </DialogDescription>
                 <DialogDescription>
-                  <textarea value={code} onChange={(e)=>setCode((e.target as any).value)} className=' w-full bg-gray-50 border rounded-xl overflow-auto min-h-[50vh] p-4 max-h-[60vh]'>
-                  </textarea>
+                  {
+                    recode?
+                    (
+                    loading?
+                    <div className='w-full flex justify-center items-center text-lg bg-gray-50 border rounded-xl overflow-auto min-h-[50vh] p-4 max-h-[60vh]'>Loading...</div>
+                    :
+                    <textarea value={recode} onChange={(e)=>setRecode((e.target as any).value)} className=' w-full bg-gray-50 border rounded-xl overflow-auto min-h-[50vh] p-4 max-h-[60vh]'>
+                    </textarea>
+                    )
+                      :
+                    <div className='w-full flex justify-center items-center text-lg bg-gray-50 border rounded-xl overflow-auto min-h-[50vh] p-4 max-h-[60vh]'>choose your framework and styling , then recode it</div>
+                  }
                 </DialogDescription>
 
               </TabsContent>
