@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2, Trash, Eraser } from 'lucide-react';
+import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2, Trash, Eraser, Stars } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -71,6 +71,7 @@ export default function Home() {
       const response = await axios.post<string>('http://localhost:3001/ai/genirate', {
         message: msg,
         code,
+        id:userId,
       });
       setCode(response.data);
 
@@ -307,7 +308,7 @@ export default function Home() {
         <Button disabled={historyPointer > history.length - 2}  onClick={redo} variant={"outline"}><Redo size={18}/></Button>
         <form onSubmit={Genirate} className='flex-1 flex gap-2'>
           <Input value={message} onInput={(e)=>setMessage((e.target as any).value)}/>
-          <Button type='submit' className='flex gap-2'>{loading?"Loading":<>Send<Send size={20}/></>}</Button>
+          <Button type='submit' className='flex gap-2 shadow-xl'>{loading?"Loading":<>Generate<Stars size={20}/></>}</Button>
         </form>
       </div>
       </div>
