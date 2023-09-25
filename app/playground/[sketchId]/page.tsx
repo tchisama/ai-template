@@ -145,6 +145,7 @@ export default function Home() {
           setCode(response.data.data)
           setSketch(response.data)
           console.log(response.data);
+          setHistory([])
         } catch (error) {
           // Handle any errors here
           console.error(error);
