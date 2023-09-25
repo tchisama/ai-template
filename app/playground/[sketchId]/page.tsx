@@ -1,9 +1,9 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2, Trash, Eraser, Stars } from 'lucide-react';
+import { Send ,ArrowLeft,Save,Plus,Code,Diamond,RedoDot,RocketIcon, Redo ,Undo,ArrowRight,Copy,Eye, Edit, Edit2, Trash, Eraser, Stars, TriangleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,6 +17,7 @@ import { ToastProvider } from '@radix-ui/react-toast';
 import { Toaster } from '@/components/ui/toaster';
 import useSketchs, { Sketch } from '@/hooks/sketchs';
 import { useClerk } from '@clerk/nextjs';
+import html2canvas from 'html2canvas';
 
 interface State {
   html: string;
@@ -39,6 +40,11 @@ export default function Home() {
   const {sketchId}=useParams()
 
   const [update,setUpdate]=useState(0)
+
+  const [iframeKey, setIframeKey] = useState(0);
+
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
   
   function copyToClipboard() {
     if(code){
@@ -68,19 +74,25 @@ export default function Home() {
       const msg = message;
       setLoading(true);
       setMessage('');
-      const response = await axios.post<string>('http://localhost:3001/ai/genirate', {
+      const response = await axios.post<{message:string,data:string}>('http://localhost:3001/ai/genirate', {
         message: msg,
         code,
         id:userId,
       });
-      setCode(response.data);
+      setCode(response.data.data);
+      if(response.data.message=="no more points"){
+          toast({
+            title:"No more points",
+            description:"get more points now",
+            action:<Button onClick={()=>router.push("/")} className='flex gap-2'>Get points<TriangleIcon size={15}/></Button>
+          })
+      }
 
       // Add the current state to the history when generating new content
       const newHistory = history.slice(0, historyPointer + 1);
-      newHistory.push({ code: response.data,prompt:msg });
+      newHistory.push({ code: response.data.data,prompt:msg });
       setHistory(newHistory);
       setHistoryPointer(newHistory.length - 1);
-      console.log(response.data)
       setUpdate(p=>p+1)
     } catch {
       console.log('Something went wrong');
@@ -118,6 +130,7 @@ export default function Home() {
       setHistory(newHistory);
       setHistoryPointer(newHistory.length - 1);
   },[])
+
 
 
   const addHistory=()=>{
@@ -160,17 +173,22 @@ export default function Home() {
   }, [sketchId]); 
 
 
-  const updateSketch = async()=>{
-        try {
-          const response = await axios.post("http://localhost:3001/sketch/update-sketch", {
-            id: sketchId,
-            data:code,
-            name:sketch?.name
-          });
-        } catch (error) {
-          // Handle any errors here
-          console.error(error);
-        }
+  const updateSketch = ()=>{
+        handleConvertToPNG().then(async(res)=>{
+          console.log(res?.toString())
+          try {
+            const response = await axios.post("http://localhost:3001/sketch/update-sketch", {
+              id: sketchId,
+              data:code,
+              name:sketch?.name,
+              image:res,
+            });
+              refreshIframe()
+            } catch (error) {
+            // Handle any errors here
+            console.error(error);
+          }
+        })
   }
 
   const createNewSketch = async()=>{
@@ -217,6 +235,33 @@ export default function Home() {
     setHistory(newHistory);
     setHistoryPointer(newHistory.length - 1);
   }
+
+
+  const handleConvertToPNG = async () => {
+      if(containerRef!==null){
+        try {
+            const canvas = await html2canvas(containerRef?.current as HTMLElement);
+            const pngDataUrl = canvas.toDataURL('image/png');
+            // You can now use `pngDataUrl` as needed, e.g., display it or save it.
+            return(pngDataUrl)
+        } catch (error) {
+          console.error('Error converting to PNG:', error);
+        }
+      }
+  };
+
+
+  const [iframeSrc, setIframeSrc] = useState(`http://localhost:3001/sketch/get-sketch/${sketchId}/1`); // Initial URL
+
+  const refreshIframe = () => {
+    // You can change the URL here to whatever URL you want to load
+    // For example, you can add a timestamp as a query parameter to prevent caching
+    const newSrc = `http://localhost:3001/sketch/get-sketch/${sketchId}/${Date.now()}`;
+
+    setIframeSrc(newSrc);
+  };
+  
+
 
   return (
     <ToastProvider>
@@ -300,7 +345,21 @@ export default function Home() {
                         </div>
                     )
                         :
-                        <div dangerouslySetInnerHTML={{ __html: code }} />
+                        <>
+                        <div  ref={containerRef} >
+                          <div dangerouslySetInnerHTML={{ __html: code }} />
+                        </div>
+                        {/* <iframe
+                          ref={containerRef}
+                          key={iframeKey}
+                          title="Node.js Content"
+                          src={iframeSrc} // Replace with the actual URL of your Node.js server
+                          width="600"
+                          height="600"
+                        />
+                        {iframeKey} */}
+                        </>
+  
                   }
         </div>
       <div className=' p-2 shadow-md border fixed bottom-4 z-50 left-[50%] translate-x-[-50%] max-w-4xl flex gap-2 w-full mx-auto bg-white rounded-lg'>
