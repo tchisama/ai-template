@@ -65,7 +65,7 @@ export default function Home() {
           title: "No more points",
           description: "get more points now",
           action: (
-            <Button onClick={() => router.push("/")} className="flex gap-2">
+            <Button onClick={() => router.push("/pricing")} className="flex gap-2">
               Get points
               <TriangleIcon size={15} />
             </Button>

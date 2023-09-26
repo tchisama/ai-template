@@ -51,19 +51,16 @@ import { useToast } from "@/components/ui/use-toast";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import useUserStore from "@/hooks/user";
 import useStore from "@/hooks/store";
+import Navbar from "@/components/global/Navbar";
 
 
 function page() {
-  const router = useRouter();
   const { sketchs, setSketchs } = useSketchs();
+  const router = useRouter();
   const [loaded, setLoaded] = useState(false);
-  const { user } = useClerk();
   const {setCode}=useStore()
+  const { user } = useClerk();
   const userId = user?.id;
-  const [newInput, setNewInput] = useState({
-    name: "",
-    description: "",
-  });
 
   const {setUser,userData}=useUserStore()
   useEffect(() => {
@@ -94,20 +91,6 @@ function page() {
   }, [userId, sketchs]); // Add userId to the dependency array
 
 
-  const createNewSketch = async () => {
-    try {
-      const response = await axios.post("http://localhost:3001/sketch/create", {
-        owner: userId,
-        ...newInput,
-      });
-      console.log(response.data);
-      setSketchs([...sketchs, response.data]);
-      router.push("/playground/" + response.data._id);
-    } catch (error) {
-      // Handle any errors here
-      console.error(error);
-    }
-  };
 
 
 
@@ -155,62 +138,7 @@ function page() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto">
-        <div className="py-8 grid grid-cols-3">
-          <UserButton afterSignOutUrl="/" />
-          <div className="flex justify-center">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="search."
-                className="pr-10 min-w-[300px]"
-              ></Input>
-              <Search className="translate-x-[-40px]" size={18} />
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <Dialog>
-              <DialogTrigger>
-                <Button className="flex gap-2 w-fit">
-                  Create new <Star />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Let's create a new sketch</DialogTitle>
-                  <DialogDescription className="flex flex-col gap-2 mt-2 py-2">
-                    <label>Name</label>
-                    <Input
-                      value={newInput.name}
-                      onInput={(e) =>
-                        setNewInput((p) => ({
-                          ...p,
-                          name: (e.target as any).value,
-                        }))
-                      }
-                    ></Input>
-                    <label>Descriptin</label>
-                    <Input
-                      value={newInput.description}
-                      onInput={(e) =>
-                        setNewInput((p) => ({
-                          ...p,
-                          description: (e.target as any).value,
-                        }))
-                      }
-                    ></Input>
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose>
-                    <Button variant={"outline"}>Cancle</Button>
-                  </DialogClose>
-                  <Button className="flex gap-2" onClick={createNewSketch}>
-                    Create <ArrowRight size={15} />
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
+        <Navbar/>
         <div className="">
           <div className="max-w-2xl my-8">
             {/* <Chart/> */}
@@ -225,7 +153,7 @@ function page() {
                     </CardDescription>
                   </div>
                   <div>
-                    <Button className="flex gap-2">
+                    <Button onClick={()=>router.push("/pricing")} className="flex gap-2">
                       Get Points <TriangleIcon size={16} />
                     </Button>
                   </div>
@@ -291,7 +219,7 @@ const SketchCard = ({ sketch }: { sketch: Sketch }) => {
           onClick={() => router.push("/playground/" + sketch._id)}
           className="overflow-hidden cursor-pointer"
         >
-          <div className="w-ful m-1 mb-0 rounded-lg p-8 aspect-video">
+          <div className="w-ful m-1 mb-0 rounded-lg p-12 aspect-video">
             <img src={sketch.image} className="w-full h-full object-contain" alt="" />
           </div>
           <CardHeader>
