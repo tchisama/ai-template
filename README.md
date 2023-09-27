@@ -52,4 +52,10 @@ Unleash your boundless creativity with the AI HTML Template Generator and watch 
 - [AI Template Generator](https://github.com/tchisama/ai-template)
 - [AI Template Generator Server](https://github.com/tchisama/ai-template-server)
 
+## **Screenshots**
+![Screenshot (15)](https://github.com/tchisama/ai-template/assets/115560200/aef2379a-a426-41bb-9e77-347ced42a7ed)
+![Screenshot (16)](https://github.com/tchisama/ai-template/assets/115560200/1cdb0496-2b31-42bf-b240-58b8d8436cff)
+![Screenshot (17)](https://github.com/tchisama/ai-template/assets/115560200/9ee94d73-7444-464f-9f47-c24889b43e80)
+![Screenshot (18)](https://github.com/tchisama/ai-template/assets/115560200/52cbfc11-260d-4bd9-bb27-772ab214f628)
+
 ---
